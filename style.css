@@ -47,6 +47,15 @@ header {
 .brand .sub { font-size: 12px; color: var(--muted); }
 .headright { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
+.gh-link {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 9px;
+  margin-left: 2px;
+  opacity: .75; transition: opacity .15s, background .15s;
+}
+.gh-link:hover { opacity: 1; background: var(--panel2); }
+.gh-link img { display: block; width: 32px; height: 32px; }
+
 .pill {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 5px 12px; border-radius: 999px;
