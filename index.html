@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Endgame Gear 8k - Web Config</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>8k Web Config</h1>
+      <span class="sub">Endgame Gear OP1 / XM2 8k series</span>
+    </div>
+  </div>
+  <div class="headright">
+    <select id="deviceSelect" hidden></select>
+    <span class="pill" id="statusPill"><span class="dot" id="statusDot"></span><span id="statusText">no device</span></span>
+    <span class="pill" id="fwChip" hidden></span>
+    <button class="btn ghost" id="btnReload" hidden>Reload</button>
+    <button class="btn danger" id="btnReset" hidden>Factory reset</button>
+    <button class="btn" id="btnAdd" hidden>+ Connect mouse</button>
+  </div>
+</header>
+
+<main>
+  <section id="hero">
+    <button class="btn primary big" id="btnHeroConnect">Connect Mouse</button>
+    <div class="supported">
+      <span class="chip">OP1 8k</span>
+      <span class="chip">XM2 8k</span>
+      <span class="chip">OP1 8k Purple Frost</span>
+      <span class="chip">OP1 8k v2</span>
+      <span class="chip">XM2 8k v2</span>
+    </div>
+    <p class="hint warn" id="heroHint" hidden></p>
+    <div class="linux-setup" id="linuxSetup" aria-label="Linux udev setup commands" hidden>
+      <div class="setup-head">
+        <span>Linux WebHID permission rule. Paste into terminal on first use.</span>
+        <button class="chip-btn" id="btnCopyUdev" type="button">Copy</button>
+      </div>
+      <pre><code id="udevCommands">printf '%s\n' 'KERNEL=="hidraw*", ATTRS{idVendor}=="3367", MODE="0660", TAG+="uaccess"' | sudo tee /etc/udev/rules.d/60-endgamegear.rules &gt;/dev/null
+sudo udevadm control --reload
+sudo udevadm trigger</code></pre>
+    </div>
+  </section>
+
+  <div id="panels" class="panels" hidden>
+
+    <section class="card" id="cardDpi">
+      <h2>DPI stages</h2>
+      <div class="row">
+        <span class="lbl">Active stages</span>
+        <div class="seg" id="stageCountSeg"></div>
+      </div>
+      <div id="stageRows"></div>
+    </section>
+
+    <section class="card" id="cardPerf">
+      <h2>Sensor &amp; performance</h2>
+      <div class="row polling-row">
+        <span class="lbl">Polling rate</span>
+        <div class="seg" id="pollingSeg"></div>
+      </div>
+      <div class="row">
+        <span class="lbl">Lift-off distance</span>
+        <select id="lodSelect"></select>
+      </div>
+      <div class="toggles">
+        <label class="toggle"><input type="checkbox" id="tglMotionSync"><span class="tgl"></span>Motion Sync</label>
+        <label class="toggle"><input type="checkbox" id="tglAngleSnap"><span class="tgl"></span>Angle Snapping</label>
+        <label class="toggle"><input type="checkbox" id="tglRipple"><span class="tgl"></span>Ripple Control</label>
+        <label class="toggle"><input type="checkbox" id="tglSlamclick"><span class="tgl"></span>Slamclick Filter</label>
+        <label class="toggle"><input type="checkbox" id="tglJitter"><span class="tgl"></span>Motion Jitter Filter</label>
+        <span id="v2Box">
+          <label class="toggle"><input type="checkbox" id="tglGlass"><span class="tgl"></span>Sensor Glass Mode</label>
+          <label class="toggle"><input type="checkbox" id="tglMaxFps"><span class="tgl"></span>Force max Sensor fps</label>
+          <label class="toggle" id="ledLiftWrap" hidden>
+            <input type="checkbox" id="tglLedLift"><span class="tgl"></span>Disable LED on Lift-Off
+          </label>
+        </span>
+      </div>
+      <div class="row angle-row" id="angleRow" hidden>
+        <span class="lbl">Sensor Angle Tuning</span>
+        <input type="range" id="rngAngle" min="-127" max="127" step="1">
+        <input type="number" id="numAngle" min="-127" max="127" step="1">
+      </div>
+    </section>
+
+    <div class="btn-cards">
+      <section class="card" id="cardBtnSettings">
+        <h2>Button settings</h2>
+        <div class="settings-head" aria-hidden="true">
+          <span></span>
+          <span title="Multiclick filter count (0-25, default 8). Not a click-latency setting. Unused while SPDT mode is active.">Multiclick filter</span>
+          <span title="SPDT mode for the GX optical switches - Left and Right buttons only. When set, it replaces the multiclick filter.">Switch mode</span>
+        </div>
+        <div id="settingsRows"></div>
+      </section>
+
+      <section class="card" id="cardButtons">
+        <div class="card-head">
+          <h2>Button remapping</h2>
+          <label class="toggle" id="lhWrap"
+                 title="Swap the fixed primary click to the physical Right button; Left becomes remappable (defaults to Right Click)">
+            <input type="checkbox" id="tglLefty"><span class="tgl"></span>Left-hand mode
+          </label>
+        </div>
+        <div id="remapRows"></div>
+      </section>
+    </div>
+
+  </div>
+
+  <section class="card" id="dbgWrap" hidden>
+    <details id="dbg">
+      <summary>Debug - transactions, raw config &amp; device actions</summary>
+      <div class="btnrow">
+        <button class="btn" id="btnExport">Export JSON</button>
+        <button class="btn" id="btnImport">Import JSON</button>
+        <input type="file" id="fileImport" accept="application/json" hidden>
+        <button class="btn" id="btnCopyDbg">Copy debug info</button>
+        <button class="btn ghost" id="btnForget">Forget device</button>
+        <button class="btn" id="btnDemoStage" hidden>Demo: press DPI button</button>
+      </div>
+      <pre id="hexDump"></pre>
+      <pre id="logPre"></pre>
+    </details>
+  </section>
+</main>
+
+<footer id="applyBar" hidden>
+  <span class="dirty-dot"></span><span id="dirtyText">Unsaved changes</span>
+  <div class="grow"></div>
+  <button class="btn ghost" id="btnDiscard">Discard</button>
+  <button class="btn primary" id="btnApply">Apply to mouse</button>
+</footer>
+
+<div id="toasts"></div>
+
+<dialog id="dlgKey">
+  <h3>Bind keyboard shortcut</h3>
+  <p>Press the key combination now.</p>
+  <div class="keyprev" id="keyPreview">...</div>
+  <div class="btnrow">
+    <button class="btn ghost" id="keyEsc">Bind Esc itself</button>
+    <button class="btn" id="keyCancel">Cancel (Esc)</button>
+  </div>
+</dialog>
+
+<dialog id="dlgConfirm">
+  <h3>Are you sure?</h3>
+  <p id="confirmText"></p>
+  <div class="btnrow">
+    <button class="btn ghost" id="confirmCancel">Cancel</button>
+    <button class="btn danger" id="confirmOk">Yes, do it</button>
+  </div>
+</dialog>
+
+<script src="profiles.js"></script>
+<script src="protocol.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
