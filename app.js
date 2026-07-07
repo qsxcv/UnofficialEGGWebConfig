@@ -259,7 +259,7 @@ function buildUI() {
     if (m && m !== state.active) activateMouse(m);
   });
 
-  // settings toggles (the glass/fps/led-lift ones only render for V2 profiles)
+  // settings toggles (glass renders for any profile with a lodGlass list; fps/led-lift are V2-only)
   wireToggle("#tglMotionSync", s => s.motionSync, (s, v) => s.motionSync = v);
   wireToggle("#tglAngleSnap", s => s.angleSnapping, (s, v) => s.angleSnapping = v);
   wireToggle("#tglRipple", s => s.rippleControl, (s, v) => s.rippleControl = v);
@@ -569,9 +569,11 @@ function render() {
   $("#tglRipple").checked = s.rippleControl;
   $("#tglSlamclick").checked = s.slamclick;
   $("#tglJitter").checked = s.motionJitter;
+  $("#glassWrap").hidden = !p.lodGlass;
+  if (p.lodGlass) $("#tglGlass").checked = s.glassMode;
+
   $("#v2Box").hidden = $("#angleRow").hidden = p.family !== "v2";
   if (p.family === "v2") {
-    $("#tglGlass").checked = s.glassMode;
     $("#tglMaxFps").checked = s.forceMaxFps;
     setVal($("#rngAngle"), s.angleTuning);
     setVal($("#numAngle"), s.angleTuning);

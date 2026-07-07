@@ -37,7 +37,9 @@ const EGG_PROFILES = {
   0x1976: {
     pid: 0x1976, name: "OP1 8k Purple Frost", family: "v1",
     cpiMin: 50, cpiMax: 30000, cpiStepLo: 50, cpiStepHi: 50,
-    lodNormal: EGG_LOD_V1, lodGlass: null,
+    // Generic PAW3950 (not the custom part in the v2 mice): glass mode works,
+    // but stays on the coarse v1 LOD/CPI granularity otherwise.
+    lodNormal: EGG_LOD_V1, lodGlass: EGG_LOD_V2_GLASS,
   },
   0x1978: {
     pid: 0x1978, name: "OP1 8k v2", family: "v2",

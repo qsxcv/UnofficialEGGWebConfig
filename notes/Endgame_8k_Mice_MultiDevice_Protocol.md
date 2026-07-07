@@ -28,9 +28,9 @@ real PID is `0x1980`).
 |---|---|---|---|---|---|
 | OP1 8k | *OP1 8k Configuration Tool V1.12* | `0x3367` | **`0x1964`** | **V1** | earlier |
 | XM2 8k | *XM2 8k Configuration Tool v1.12* | `0x3367` | **`0x1966`** | **V1** | earlier |
-| OP1 8k Purple Frost LE | *…Purple Frost… Configuration Tool* | `0x3367` | **`0x1976`** | **V1** | earlier |
-| OP1 8k **v2** | *OP1 8k v2 Configuration Tool v1.04* | `0x3367` | **`0x1978`** | **V2** | PAW3950 |
-| XM2 8k **v2** | *XM2 8k v2 Configuration Tool v1.04* | `0x3367` | **`0x1980`** | **V2** | PAW3950 |
+| OP1 8k Purple Frost LE | *…Purple Frost… Configuration Tool* | `0x3367` | **`0x1976`** | **V1** | PAW3950 (generic)³ |
+| OP1 8k **v2** | *OP1 8k v2 Configuration Tool v1.04* | `0x3367` | **`0x1978`** | **V2** | PAW3950 (custom) |
+| XM2 8k **v2** | *XM2 8k v2 Configuration Tool v1.04* | `0x3367` | **`0x1980`** | **V2** | PAW3950 (custom) |
 
 Notes established from the binaries:
 
@@ -43,7 +43,21 @@ Notes established from the binaries:
   OP1 8k v2 ≡ XM2 8k v2 (V2), with zero setting-level differences.
 - **Purple Frost** is an *older build* of the V1 tool: its UI omits the **Motion Jitter
   Filter** toggle and the `8000Hz` label string that the newer OP1 8k V1.12 build shows.
-  The device itself is a V1-family OP1 8k (PID `0x1976`); treat it as V1.
+  The device itself is a V1-family OP1 8k (PID `0x1976`); treat it as V1 for CPI
+  granularity, button vocabulary and MCU-level extras (angle tuning / force-max-fps /
+  LED lift-off).
+- ³ **Purple Frost's sensor is a PAW3950** — the same chip family as the V2 mice, but
+  the *generic* part rather than the custom one Endgame Gear put in the V2 mice. Its
+  LOD/CPI granularity stays at V1's coarser values (no 0.1 mm LOD steps, no 10-CPI
+  granularity below 10k), but it does support **Glass Mode**.
+  **✅ Confirmed 2026-07-07 by decompiling the actual Purple Frost exe** (not inferred):
+  the binary's own PDB path is literally
+  `H:\...\K26_046_config_v1.11_8k_purple_glass_mode_1kHz\...` and its dialog resources
+  contain the caption string `"Glass Mode"` (shorter than V2's `"Sensor Glass Mode"`,
+  but the same control) — so Purple Frost's *own stock tool* already surfaces this,
+  it isn't an enhancement this app is adding beyond the vendor tool. See §5.1/§5.2/§7
+  for the full evidence trail, including what this build's binary does **not** contain
+  (Sensor Angle Tuning, Force max Sensor fps).
 
 ---
 
@@ -62,12 +76,14 @@ Notes established from the binaries:
         • LOD = 3 options (0.7 / 1 / 2 mm)          • LOD = 11 options (0.7–1.7 mm) +2.0 mm
         • CPI step 50 uniform                       • CPI step 10 (≤10k) then 50
         • CPI max: 26000 (OP1/XM2) · 30000 (Purple) • CPI 10–30000
-        • No sensor-tuning extras                   • + Sensor Glass Mode
-        • No "Disable LED on Lift-Off" in UI        • + Sensor Angle Tuning (−127…+127)
-        • (Purple: no Motion Jitter toggle)         • + Force max Sensor fps
-                                                    • + Disable LED on Lift-Off
-                                                    • config offsets 126–130 populated
+        • No MCU-tuning extras                       • + Sensor Angle Tuning (−127…+127)
+        • No "Disable LED on Lift-Off" in UI        • + Force max Sensor fps
+        • (Purple: no Motion Jitter toggle)         • + Disable LED on Lift-Off
+        • (Purple only: + Sensor Glass Mode¹)       • config offsets 126–130 populated
 ```
+
+¹ Capability, not family: Purple Frost's generic PAW3950 supports Glass Mode (byte 127)
+even though it's otherwise a V1-family device — see the ³ note above and §5.1/§7.
 
 > **Per-device CPI range and LOD list are the settings that vary most** — see the verified
 > tables in **§5.4 (CPI/DPI)** and **§5.5 (LOD)**. Both are taken from each binary's own
@@ -197,14 +213,23 @@ unchanged. The only LED-related control currently treated as app-managed is the 
 | LED (DPI/Logo/Scroll + effect) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Button mapping + Left-handed | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Factory Reset | ✅ | ✅ | ✅ | ✅ | ✅ |
-| **Sensor Glass Mode** | ✗ | ✗ | ✗ | ✅ | ✅ |
-| **Sensor Angle Tuning (−127…+127)** | ✗ | ✗ | ✗ | ✅ | ✅ |
-| **Force max Sensor fps** | ✗ | ✗ | ✗ | ✅ | ✅ |
+| **Sensor Glass Mode** | ✗ | ✗ | ✅³ | ✅ | ✅ |
+| **Sensor Angle Tuning (−127…+127)** | ✗ | ✗ | ✗³ | ✅ | ✅ |
+| **Force max Sensor fps** | ✗ | ✗ | ✗³ | ✅ | ✅ |
 | **Disable LED on Lift-Off** | ✗ | ✗ | ✗ | ✅ | ✅ |
 
 ² Motion Jitter Filter toggle is absent from the Purple Frost UI build; the underlying
 byte-22 bit still exists in the shared layout. (All five devices, Purple included, expose
 the full 1000/2000/4000/8000 Hz polling list — verified from each binary's options table.)
+
+³ Decompiled directly from the Purple Frost exe (2026-07-07 — see §5.2/§7): its dialog
+resources contain `"Glass Mode"` but **no** `"Sensor Angle Tuning"` or `"Force max Sensor
+fps"` string anywhere in the binary (checked byte-for-byte, both ASCII and UTF-16LE, all
+casings). The shared V1 struct→wire permutation function (`FUN_00404d20`, same address in
+all three V1 tools) tops out at output byte 111 - it structurally cannot reach offsets
+127-129 either way. If a newer Purple Frost tool build exists with Angle Tuning / Force
+Max FPS, it isn't the one checked here - flag it and it can be re-decompiled
+(see [decompile/README.md](decompile/README.md)).
 
 ### 5.2 V1 family (OP1 8k · XM2 8k · Purple Frost) — specifics
 
@@ -216,14 +241,37 @@ the full 1000/2000/4000/8000 Hz polling list — verified from each binary's opt
   `CB_INSERTSTRING`, analogous to V2's glass-mode list swap.)
 - **CPI:** OP1 8k and XM2 8k clamp to **50…26000** (PAW3395-class); **Purple Frost clamps to
   50…30000** — see §5.4. All V1 devices round to the nearest **50** (round-half-up).
-- **No sensor-tuning extras.** The V1 tools never surface Sensor Glass Mode, Sensor Angle
-  Tuning, or Force max Sensor fps. Report offsets ~126–130 are **not written** by V1 (leave
-  them as read).
+- **No MCU-tuning extras.** None of the V1 tools (Purple Frost included) surface Sensor
+  Angle Tuning or Force max Sensor fps. Report offsets 128–129 are **not written** by any
+  V1 device (leave them as read) — these are MCU-level features tied to the V2 board, not
+  the sensor.
 - **No "Disable LED on Lift-Off" control.** Report offset 24 exists in the shared layout but
   the V1 UI doesn't expose it; leave it at its read-back value.
 - **Purple Frost** = same protocol/family as OP1 8k (PID `0x1976`) but its clamp allows a
   **higher CPI max (30000 vs 26000)** and its (older) tool build hides the Motion Jitter
   Filter toggle. You can still expose Motion Jitter (the byte-22 bit is present).
+- **Purple Frost + Glass Mode (byte 127).** Unlike OP1 8k/XM2 8k, Purple Frost's sensor
+  is a PAW3950 (generic part, not the custom one in the V2 mice), and unlike them its
+  *own stock tool does* have a Glass Mode toggle - decompiled confirmation 2026-07-07:
+  the exe's dialog resources contain the caption `"Glass Mode"` (V2's is worded
+  `"Sensor Glass Mode"` - same control, terser label), and the tool's own PDB path is
+  `H:\...\K26_046_config_v1.11_8k_purple_glass_mode_1kHz\...`, i.e. this is literally a
+  "glass mode" variant build of the V1 tool for this device. This app writes byte 127
+  for Purple Frost gated on a `lodGlass` capability flag rather than on V1/V2 family,
+  and swaps in the same 2-entry glass LOD list as the V2 mice (§5.5) while it's active.
+  Purple Frost's LOD/CPI *granularity* otherwise stays V1-coarse (no 0.1 mm LOD steps,
+  no 10-CPI-step below 10k) — the generic PAW3950 lacks the custom part's finer
+  resolution.
+  **Checked and ruled out for this same exe:** Sensor Angle Tuning and Force max Sensor
+  fps. Neither caption string exists anywhere in the binary (exhaustive check, both
+  encodings), and the shared V1 permutation function that would carry such fields onto
+  the wire (`FUN_00404d20`) only ever writes output bytes 0-111 - it can't reach offsets
+  128/129 even in principle. Whatever wrote Glass Mode's byte 127 for this build is a
+  separate, Purple-Frost-specific addition outside that shared function; it wasn't fully
+  traced (heavily optimized MSVC output - see
+  [decompile/README.md](decompile/README.md) for what's been tried). Treat Angle
+  Tuning/Force Max FPS as **absent** on Purple Frost unless a different tool build is
+  found that says otherwise.
 
 ### 5.3 V2 family (OP1 8k v2 · XM2 8k v2) — specifics
 
@@ -260,12 +308,14 @@ as a little-endian scalar — **not** a lookup index.
 
 | Device | LOD options (byte 25 = list index) |
 |---|---|
-| OP1 8k · XM2 8k · Purple Frost | **`0.7 mm` (0), `1 mm` (1), `2 mm` (2)** — 3 entries |
-| OP1 8k v2 · XM2 8k v2 | `0.7, 0.8, … 1.7 mm` (0–10) — 11 entries; **`2.0 mm`** available as the index-1 value of the special 2-entry list used in Sensor Glass Mode |
+| OP1 8k · XM2 8k · Purple Frost (normal) | **`0.7 mm` (0), `1 mm` (1), `2 mm` (2)** — 3 entries |
+| OP1 8k v2 · XM2 8k v2 (normal) | `0.7, 0.8, … 1.7 mm` (0–10) — 11 entries |
+| OP1 8k v2 · XM2 8k v2 · **Purple Frost (Glass Mode)** | `1.0 mm` (0), `2.0 mm` (1) — 2 entries |
 
 So **every device can select a ~2 mm lift-off** — the V1 family exposes it directly as the
-3rd normal option, the V2 family exposes `2.0 mm` via Glass Mode. Byte 25 is always just the
-selected list index; the firmware maps the index to the physical distance.
+3rd normal option, and any Glass-Mode-capable device (V2, or Purple Frost per this app) also
+exposes `2.0 mm` via the Glass Mode list. Byte 25 is always just the selected list index; the
+firmware maps the index to the physical distance.
 
 ---
 
@@ -284,10 +334,11 @@ selected list index; the firmware maps the index to the physical distance.
        uint8_t  cpi_step_lo;      // step at/below 10000
        uint8_t  cpi_step_hi;      // step above 10000
        uint8_t  lod_count;        // V1: 3 (0.7/1/2mm)   V2: 11 (0.7-1.7) [+2.0 in glass]
-       bool     has_sensor_glass; // V2 only
-       bool     has_angle_tuning; // V2 only
-       bool     has_force_max_fps;// V2 only
-       bool     has_led_liftoff;  // V2 only
+       bool     has_sensor_glass; // sensor capability, NOT a family flag - true for
+                                  // both V2 mice and Purple Frost (generic PAW3950)
+       bool     has_angle_tuning; // V2 only (MCU-level)
+       bool     has_force_max_fps;// V2 only (MCU-level)
+       bool     has_led_liftoff;  // V2 only (MCU-level)
        bool     has_motion_jitter;// all except Purple's stock UI
    } device_profile;
 
@@ -295,7 +346,7 @@ selected list index; the firmware maps the index to the physical distance.
      //  pid    name                  family  cpimin cpimax  slo shi lod  glass angle fps  lift  jitter
      {0x1964,"OP1 8k",              FAM_V1,   50, 26000,  50, 50,  3, false,false,false,false, true },
      {0x1966,"XM2 8k",              FAM_V1,   50, 26000,  50, 50,  3, false,false,false,false, true },
-     {0x1976,"OP1 8k Purple Frost", FAM_V1,   50, 30000,  50, 50,  3, false,false,false,false, true },
+     {0x1976,"OP1 8k Purple Frost", FAM_V1,   50, 30000,  50, 50,  3, true, false,false,false, true },
      {0x1978,"OP1 8k v2",           FAM_V2,   10, 30000,  10, 50, 11, true, true, true, true,  true },
      {0x1980,"XM2 8k v2",           FAM_V2,   10, 30000,  10, 50, 11, true, true, true, true,  true },
    };
@@ -322,8 +373,23 @@ SPDT / mapping vocabulary; the V2-only feature set; and that XM2 8k v2's PID is 
 **Recommend confirming on hardware:**
 - V1 LOD index→distance mapping (`0→0.7 mm, 1→1 mm, 2→2 mm`) — the option *labels* and index
   order are confirmed in the binary; the physical distance is the firmware's interpretation.
-- Whether V1-family *hardware* silently supports the V2-only sensor features even though the
-  V1 tool hides them (the byte positions exist in the shared layout).
+- ~~Whether V1-family hardware silently supports the V2-only sensor features even though the
+  V1 tool hides them~~ — **resolved 2026-07-07 for Purple Frost by decompiling its exe**
+  (`webapp/notes/decompile/out/purple_frost.c` - see
+  [decompile/README.md](decompile/README.md) for how to reproduce):
+  - **Glass Mode: present.** Dialog caption `"Glass Mode"` found in the binary; PDB path
+    is literally `...K26_046_config_v1.11_8k_purple_glass_mode_1kHz...`. This is a real,
+    shipped feature of Purple Frost's own tool, not something inferred from "it's the
+    same sensor family" - flagged ✅³ in §5.1.
+  - **Sensor Angle Tuning / Force max Sensor fps: absent.** Neither string exists
+    anywhere in the binary (byte-level check, ASCII + UTF-16LE, all casings), and the
+    shared V1 permutation function (`FUN_00404d20`, same address as in OP1 8k/XM2 8k)
+    only ever writes output bytes 0-111, well short of offsets 128/129. Flagged ✗³ in
+    §5.1. (A user expected these to be present on the latest Purple Frost tool - if a
+    different/newer build turns up, re-run the decompile against it before trusting this
+    row.)
+  - LED lift-off (byte 24) was not re-checked this pass; still assumed absent per the
+    original binary-verified V1 finding.
 - ~~Left-handed Mode's exact byte-level swap~~ — resolved for the V2 family on 2026-07-05
   (see V2 doc §4.6.1): wire 71–76 = physical Left's mapping slot; right-handed ⇔ plain
   LEFT CLICK there. Still unconfirmed on V1-family hardware, but the shared layout makes

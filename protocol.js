@@ -40,7 +40,7 @@ const EGG_OFF = {
                       // right-handed = 00 01 (plain LEFT CLICK); left-handed = Left's
                       // user action here with record 0 = 00 01. All-zero DISABLES Left.
   BUTTONS: 77,        // 7 x 7-byte records
-  GLASS: 127,         // V2 only
+  GLASS: 127,         // sensor capability (v2 mice + Purple Frost); gated on profile.lodGlass, not family
   ANGLE_TUNE: 128,    // V2 only, int8 -127..+127
   MAX_FPS: 129,       // V2 only
   MC_MASTER: 130,     // in the V2 layout; not surfaced by this app - preserved on writes
@@ -492,9 +492,12 @@ function eggSerializeConfig(base, s, profile) {
     for (let k = 0; k < 6; k++) out[EGG_OFF.HANDED + k] = (hs[k] || 0) & 0xFF;
   }
 
+  // Glass mode is a sensor capability (PAW3950, v2 mice + Purple Frost's generic
+  // part) - independent of the MCU-level v2-only features below.
+  if (profile.lodGlass) out[EGG_OFF.GLASS] = s.glassMode ? 1 : 0;
+
   if (profile.family === "v2") {
     out[EGG_OFF.LED_LIFTOFF] = s.ledLiftoffDisabled ? 0 : 1; // inverted storage
-    out[EGG_OFF.GLASS] = s.glassMode ? 1 : 0;
     out[EGG_OFF.ANGLE_TUNE] = Math.max(-127, Math.min(127, s.angleTuning | 0)) & 0xFF;
     out[EGG_OFF.MAX_FPS] = s.forceMaxFps ? 1 : 0;
   }

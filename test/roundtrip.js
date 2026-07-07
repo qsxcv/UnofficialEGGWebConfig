@@ -140,6 +140,22 @@ eq(s.buttons[4].params[1], base[105 + 3], "parse raw button record 4 param1 @109
   eq(P.eggLodList(V2, true), ["1.0 mm", "2.0 mm"], "V2 glass LOD list");
 }
 
+// Purple Frost: generic PAW3950 gets glass mode (byte 127) but stays off the
+// MCU-level V2-only bytes (LED lift-off, angle tune, max fps).
+{
+  const st = structuredClone(s);
+  st.ledLiftoffDisabled = true;
+  st.glassMode = true;
+  st.angleTuning = 55;
+  st.forceMaxFps = true;
+  const out = T.eggSerializeConfig(base, st, PURPLE);
+  eq(out[T.EGG_OFF.GLASS], 1, "Purple Frost writes glass byte");
+  for (const off of [24, 128, 129, 130]) {
+    eq(out[off], base[off], `Purple Frost leaves MCU-only byte ${off} untouched`);
+  }
+  eq(P.eggLodList(PURPLE, true), ["1.0 mm", "2.0 mm"], "Purple Frost glass LOD list matches V2's");
+}
+
 // Byte 130 is not surfaced in the app; preserve it like other device-owned data.
 {
   const st = structuredClone(s);
