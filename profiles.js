@@ -1,9 +1,9 @@
 "use strict";
 /*
  * Device profiles & static vocabulary for the Endgame Gear 8k series.
- * Every value here is binary-verified - see ../Endgame_8k_Mice_MultiDevice_Protocol.md
+ * Every value here is binary-verified - see notes/Endgame_8k_Mice_MultiDevice_Protocol.md
  * (per-device CPI clamps section 5.4, LOD lists section 5.5, capability matrix section 5.1) and
- * ../OP1_8k_v2_USB_Protocol.md (button-action vocabulary section 4.6).
+ * notes/OP1_8k_v2_USB_Protocol.md (button-action vocabulary section 4.6).
  */
 
 const EGG_VID = 0x3367;
@@ -14,6 +14,9 @@ const EGG_LOD_V2 = ["0.7 mm", "0.8 mm", "0.9 mm", "1.0 mm", "1.1 mm",
 const EGG_LOD_V2_GLASS = ["1.0 mm", "2.0 mm"];
 
 const EGG_POLLING = [
+  { div: 64, hz: 125 },
+  { div: 32, hz: 250 },
+  { div: 16, hz: 500 },
   { div: 8, hz: 1000 },
   { div: 4, hz: 2000 },
   { div: 2, hz: 4000 },

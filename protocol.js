@@ -3,7 +3,7 @@
  * HID transport + config-blob codec for the Endgame Gear 8k series.
  *
  * All offsets are ABSOLUTE report offsets (byte 0 = the report ID), exactly as in
- * ../OP1_8k_v2_USB_Protocol.md section 3 - the universal layout for both families.
+ * notes/OP1_8k_v2_USB_Protocol.md section 3 - the universal layout for both families.
  * WebHID's sendFeatureReport() takes the payload WITHOUT the report-ID byte.
  * receiveFeatureReport() is less consistent for these mice: short 0xA1 reports are
  * returned as payload-only, but full config reads can arrive with byte 0 as a
